@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect, session, send_file, after_this_request
 from docxtpl import DocxTemplate, InlineImage
-from datetime import timedelta
 from werkzeug.utils import secure_filename #for making the file name secure like my file.csv -> my_file.csv automatically
 from PIL import Image
 from docx.shared import Mm
@@ -49,10 +48,41 @@ def upload():
     filename = secure_filename(csv_file.filename)       #to making sure the file name has safe saving name 
     csv_path = os.path.join(UPLOAD_FOLDER, filename)        # it join the temp folder path with the secured file name
     csv_file.save(csv_path)     #save the file into the temp folder path
+    session["csv_path"] = csv_path
+
 
     # =========================
+    # Store in Session
+    # =========================
+    session["event_details"] = {
+        "code": code,
+        "date": date,
+        "duration": duration,
+        "venue": venue,
+        "register1": register1,
+        "register2": register2,
+        "register3": register3,
+
+    }
+
+    # =========================
+    # Debug Print
+    # =========================
+    # print("\n=== EVENT DETAILS ===")
+    # print(session["event_details"])
+
+    # print("\n=== PARTICIPANTS ===")
+    # for p in participants:
+    #     print(p)
+
+    return redirect("/teams")
+
+@app.route("/teams")
+def teams():
+        # =========================
     # Read CSV
     # =========================
+    csv_path = session.get("csv_path")
     try:
         df = pd.read_csv(csv_path)
     except Exception as e:
@@ -73,38 +103,6 @@ def upload():
     # Convert to List
     # =========================
     participants = df.to_dict(orient="records")
-
-    # =========================
-    # Store in Session
-    # =========================
-    session["event_details"] = {
-        "code": code,
-        "date": date,
-        "duration": duration,
-        "venue": venue,
-        "register1": register1,
-        "register2": register2,
-        "register3": register3,
-
-    }
-
-    session["participants"] = participants
-
-    # =========================
-    # Debug Print
-    # =========================
-    # print("\n=== EVENT DETAILS ===")
-    # print(session["event_details"])
-
-    # print("\n=== PARTICIPANTS ===")
-    # for p in participants:
-    #     print(p)
-
-    return redirect("/teams")
-
-@app.route("/teams")
-def teams():
-    participants = session.get("participants", [])
 
     return render_template(
         "teams.html",
