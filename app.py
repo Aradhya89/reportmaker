@@ -14,7 +14,6 @@ app.secret_key = os.getenv("SECRETKEY")
 
 
 
-
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -90,7 +89,7 @@ def upload():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-
+    print(os.getenv("password"))
     if request.method == "POST":
 
         password = request.form.get("password")
