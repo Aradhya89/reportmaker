@@ -19,6 +19,17 @@ app.secret_key = os.getenv("SECRETKEY")
 def index():
     return render_template("index.html")
 
+@app.before_request
+def require_login():
+
+    allowed_routes = ["login"]
+
+    if request.endpoint in allowed_routes:
+        return
+
+    if not session.get("logged_in"):
+        return redirect("/login")
+
 
 @app.route("/upload", methods=["POST"])
 def upload():
@@ -77,6 +88,28 @@ def upload():
 
     return redirect("/teams")
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+
+    if request.method == "POST":
+
+        password = request.form.get("password")
+
+        if password == os.getenv("password"):
+            session["logged_in"] = True
+            return redirect("/")
+
+        return "Wrong password"
+
+    return """
+    <form method="POST">
+        <h2>Welcome To Report Maker <h2>
+        <h2>Enter Password</h2>
+        <input type="password" name="password" required>
+        <button type="submit">Login</button>
+    </form>
+    """
+
 @app.route("/teams")
 def teams():
         # =========================
@@ -93,6 +126,7 @@ def teams():
     # Validate Columns
     # =========================
     required_columns = ["Name", "RollNo"]
+    df = df[required_columns]
 
     for col in required_columns:
         if col not in df.columns:

@@ -184,6 +184,9 @@
                     create: false,
 
                     persist: false,
+                    onItemAdd: function () {
+                        this.control_input.value = "";
+                    },
 
                     maxItems: null,
 
