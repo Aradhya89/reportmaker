@@ -167,6 +167,18 @@
                     class="form-control team-mvp"   
                     accept="image/*">
             </div>
+                <div class="col-md-12 mb-3">
+
+                    <label class="form-label">
+                        Conclusion
+                    </label>
+
+                    <input
+                        type="text"
+                        class="form-control conclusion"
+                    >
+
+                </div>
 
 
         </div>
@@ -281,6 +293,7 @@
 
                 const teamName = card.querySelector(".team-name").value;
                 const psNo = card.querySelector(".ps-no").value;
+                const conclusion = card.querySelector(".conclusion").value;
 
                 const ts = tomSelectInstances[index];
 
@@ -302,7 +315,8 @@
                     team_name: teamName,
                     ps_no: psNo,
                     length: members.length,
-                    members: members
+                    members: members,
+                    conclusion: conclusion
                 });
 
                 // =========================

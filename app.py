@@ -205,6 +205,7 @@ def save_teams():
             "ps_no": team["ps_no"],
             "length": team["length"],
             "members": team["members"],
+            "conclusion": team["conclusion"],
             "mvp": image_obj
         })
 
@@ -215,7 +216,7 @@ def save_teams():
 
 
     # 1. Get the safe data from the user
-
+    print(context)
 
     print("\n✅ Data collection complete. Generating Word Document...")
 
