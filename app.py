@@ -8,10 +8,10 @@ import pandas as pd
 import os
 import json
 import shutil
-import dotenv
+# import dotenv
 
 app = Flask(__name__)
-dotenv.load_dotenv()
+# dotenv.load_dotenv()
 app.secret_key = os.getenv("SECRETKEY")
 
 
