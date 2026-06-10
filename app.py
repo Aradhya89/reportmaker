@@ -8,8 +8,10 @@ import pandas as pd
 import os
 import json
 import shutil
+import dotenv
 
 app = Flask(__name__)
+dotenv.load_dotenv()
 app.secret_key = os.getenv("SECRETKEY")
 
 
@@ -89,7 +91,6 @@ def upload():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    print(os.getenv("password"))
     if request.method == "POST":
 
         password = request.form.get("password")
