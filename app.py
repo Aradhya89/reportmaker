@@ -87,7 +87,34 @@ def upload():
     # for p in participants:
     #     print(p)
 
-    return redirect("/teams")
+    return redirect("/event")
+@app.route("/event", methods= ["GET","POST"])
+def image():
+    if request.method == "POST":
+        UPLOAD_FOLDER = session.get("UPLOAD_FOLDER")
+        imagelist = []
+        for a in range(1,7):
+            file = request.files.get(f"image{a}")
+
+            if file and file.filename != "":
+
+                # Get original extension
+                ext = os.path.splitext(file.filename)[1].lower()
+
+                filename = f"image{a}{ext}"
+                path = os.path.join(UPLOAD_FOLDER, filename)    #to merge the path of the temp folder with the image name
+
+                # modify and correcting the format of the inserted image 
+                img = Image.open(file.stream)
+                img.convert("RGB").save(path, optimize=True)
+
+
+                imagelist.append(path)
+        session["imagespath"] = imagelist
+        return redirect("/teams")
+
+
+    return render_template("image.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -189,7 +216,7 @@ def save_teams():
             #convert to DOCX inline image
             image_obj = InlineImage(doc, path, width=Mm(102))
         else:
-            image_obj = ""  
+            image_obj = ""
 
 
 
@@ -209,7 +236,15 @@ def save_teams():
             "mvp": image_obj
         })
 
-    
+    imagelist = session.get("imagespath")
+    print(imagelist)
+
+    for a, image  in enumerate(imagelist):
+            context[f"image{a+1}"] = InlineImage(doc, image, width=Mm(50))
+  
+
+
+
     # for debbuging
     # print("\n=== FINAL CONTEXT ===")
     # print(json.dumps(context, indent=4))
