@@ -93,7 +93,7 @@ def image():
     if request.method == "POST":
         UPLOAD_FOLDER = session.get("UPLOAD_FOLDER")
         imagelist = []
-        for a in range(1,7):
+        for a in range(1,5):
             file = request.files.get(f"image{a}")
 
             if file and file.filename != "":
@@ -240,7 +240,7 @@ def save_teams():
     print(imagelist)
 
     for a, image  in enumerate(imagelist):
-            context[f"image{a+1}"] = InlineImage(doc, image, width=Mm(50))
+            context[f"image{a+1}"] = InlineImage(doc, image, width=Mm(82))
   
 
 
