@@ -15,6 +15,21 @@ app = Flask(__name__)
 app.secret_key = os.getenv("SECRETKEY")
 
 
+#resizeing the image
+def resize_keep_ratio(img, target_width):
+    w, h = img.size
+
+    if w <= target_width:
+        return img
+
+    new_height = int(h * target_width / w)
+
+    return img.resize(
+        (target_width, new_height),
+        Image.LANCZOS
+    )
+
+
 
 @app.route("/")
 def index():
@@ -58,14 +73,14 @@ def upload():
 
     # Save uploaded file
     filename = secure_filename(csv_file.filename)       #to making sure the file name has safe saving name 
-    csv_path = os.path.join(UPLOAD_FOLDER, filename)        # it join the temp folder path with the secured file name
+    csv_path = os.path.join(UPLOAD_FOLDER, filename)          # it join the temp folder path with the secured file name
     csv_file.save(csv_path)     #save the file into the temp folder path
     session["csv_path"] = csv_path
 
 
     # =========================
     # Store in Session
-    # =========================
+    # =========================f
     session["event_details"] = {
         "code": code,
         "date": date,
@@ -106,7 +121,18 @@ def image():
 
                 # modify and correcting the format of the inserted image 
                 img = Image.open(file.stream)
-                img.convert("RGB").save(path, optimize=True)
+                if img.mode != "RGB":
+                    img = img.convert("RGB")
+                
+                img.save(
+    path,
+    format="JPEG",
+    quality=75,
+    optimize=False
+)
+                # img = resize_keep_ratio(img, 1200)
+                # img.save(path, quality = 80)
+                # print(f"image done")
 
 
                 imagelist.append(path)
@@ -153,12 +179,12 @@ def teams():
     # Validate Columns
     # =========================
     required_columns = ["Name", "RollNo"]
-    df = df[required_columns]
 
     for col in required_columns:
         if col not in df.columns:
             return f"❌ Missing required column: {col}"
 
+    df = df[required_columns]
 
     # =========================
     # Convert to List
