@@ -57,9 +57,18 @@
 
                     <div class="d-grid">
 
-                        <button type="submit" class="btn btn-primary btn-lg">
+                        <button id="submitBtn" type="submit" class="btn btn-primary btn-lg">
                             Continue →
                         </button>
+                        <div id="loadingMessage"
+     class="mt-3"
+     style="display:none;">
+    <div class="spinner-border spinner-border-sm"
+         role="status">
+    </div>
+
+    Processing images... Please wait.
+</div>
 
                     </div>
 
@@ -72,39 +81,105 @@
     </div>
     <script>
 const form = document.getElementById("eventForm");
+const submitBtn = document.getElementById("submitBtn");
+const loadingMessage =
+    document.getElementById("loadingMessage");
 
-form.addEventListener("submit", async function (e) {
-    e.preventDefault();
+form.addEventListener(
+    "submit",
+    async function (e) {
 
-    const compressedData = new FormData();
+        e.preventDefault();
 
-    for (const element of form.elements) {
+        if (submitBtn.disabled) {
+            return;
+        }
 
-        if (element.type === "file") {
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Processing...";
+        loadingMessage.style.display = "block";
 
-            const file = element.files[0];
+        try {
 
-            if (!file) continue;
+            const compressedData =
+                new FormData();
 
-            const compressed = await compressImage(file);
+            const files =
+                [...form.elements]
+                .filter(
+                    element =>
+                        element.type === "file" &&
+                        element.files.length > 0
+                );
 
-            compressedData.append(
-                element.name,
-                compressed,
-                file.name.replace(/\.[^/.]+$/, ".jpg")
+            const total = files.length;
+            let current = 0;
+
+            for (const element of files) {
+
+                current++;
+
+                loadingMessage.innerHTML = `
+                    <div class="spinner-border spinner-border-sm"
+                         role="status"></div>
+                    Compressing image ${current}
+                    of ${total}...
+                `;
+
+                const file =
+                    element.files[0];
+
+                const compressed =
+                    await compressImage(file);
+
+                compressedData.append(
+                    element.name,
+                    compressed,
+                    file.name.replace(
+                        /\.[^/.]+$/,
+                        ".jpg"
+                    )
+                );
+            }
+
+            loadingMessage.innerHTML = `
+                <div class="spinner-border spinner-border-sm"
+                     role="status"></div>
+                Uploading images...
+            `;
+
+            const response =
+                await fetch(
+                    form.action,
+                    {
+                        method: "POST",
+                        body: compressedData
+                    }
+                );
+
+            if (response.redirected) {
+                window.location.href =
+                    response.url;
+            }
+
+        } catch (err) {
+
+            console.error(err);
+
+            submitBtn.disabled = false;
+            submitBtn.innerText =
+                "Continue →";
+
+            loadingMessage.style.display =
+                "none";
+
+            alert(
+                "Something went wrong."
             );
         }
     }
+);
 
-    const response = await fetch(form.action, {
-        method: "POST",
-        body: compressedData
-    });
-
-    if (response.redirected) {
-        window.location.href = response.url;
-    }
-});
 
 function compressImage(file) {
     return new Promise((resolve) => {
