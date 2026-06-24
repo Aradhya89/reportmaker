@@ -120,16 +120,17 @@ def image():
                 path = os.path.join(UPLOAD_FOLDER, filename)    #to merge the path of the temp folder with the image name
 
                 # modify and correcting the format of the inserted image 
-                img = Image.open(file.stream)
-                if img.mode != "RGB":
-                    img = img.convert("RGB")
+#                 img = Image.open(file.stream)
+#                 if img.mode != "RGB":
+#                     img = img.convert("RGB")
                 
-                img.save(
-    path,
-    format="JPEG",
-    quality=75,
-    optimize=False
-)
+#                 img.save(
+#     path,
+#     format="JPEG",
+#     quality=75,
+#     optimize=False
+# )
+                file.save(path)
                 # img = resize_keep_ratio(img, 1200)
                 # img.save(path, quality = 80)
                 # print(f"image done")

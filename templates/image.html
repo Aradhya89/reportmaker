@@ -26,31 +26,27 @@
                     Hackathon Report Generator
                 </h1>
 
-                <form action="/event" method="POST" enctype="multipart/form-data">
-
+                <form id="eventForm" action="/event" method="POST" enctype="multipart/form-data">
                     <div class="mb-4">
 
                         <div class="mb-3">
                             <label class="form-label">Event Image</label>
 
-                            <input type="file" name = "image1" class="form-control team-mvp" accept="image/*">
+                            <input type="file" name="image1" class="form-control team-mvp" accept="image/*">
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Event Image</label>
 
-                            <input type="file" name = "image2" class="form-control team-mvp" accept="image/*">
+                            <input type="file" name="image2" class="form-control team-mvp" accept="image/*">
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Event Image</label>
 
-                            <input type="file" name = "image3" class="form-control team-mvp" accept="image/*">
+                            <input type="file" name="image3" class="form-control team-mvp" accept="image/*">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Event Image</label>
 
-                            <input type="file" name = "image4" class="form-control team-mvp" accept="image/*">
+                            <input type="file" name="image4" class="form-control team-mvp" accept="image/*">
                         </div>
 
                     </div>
@@ -74,6 +70,83 @@
         </div>
 
     </div>
+    <script>
+const form = document.getElementById("eventForm");
+
+form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const compressedData = new FormData();
+
+    for (const element of form.elements) {
+
+        if (element.type === "file") {
+
+            const file = element.files[0];
+
+            if (!file) continue;
+
+            const compressed = await compressImage(file);
+
+            compressedData.append(
+                element.name,
+                compressed,
+                file.name.replace(/\.[^/.]+$/, ".jpg")
+            );
+        }
+    }
+
+    const response = await fetch(form.action, {
+        method: "POST",
+        body: compressedData
+    });
+
+    if (response.redirected) {
+        window.location.href = response.url;
+    }
+});
+
+function compressImage(file) {
+    return new Promise((resolve) => {
+
+        const reader = new FileReader();
+        const img = new Image();
+
+        reader.onload = function (e) {
+            img.src = e.target.result;
+        };
+
+        img.onload = function () {
+
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+
+            let width = img.width;
+            let height = img.height;
+
+            const MAX_WIDTH = 1400;
+
+            if (width > MAX_WIDTH) {
+                height = height * MAX_WIDTH / width;
+                width = MAX_WIDTH;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob(
+                (blob) => resolve(blob),
+                "image/jpeg",
+                0.75
+            );
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
+</script>
 
 </body>
 
