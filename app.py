@@ -79,19 +79,33 @@ def upload():
     csv_path = os.path.join(UPLOAD_FOLDER, filename)          # it join the temp folder path with the secured file name
     
     
-    reader = csv.reader(csv_file.stream.read().decode("utf-8").splitlines()) #initialize the csv reader
+    try:
+        df = pd.read_csv(csv_file)
+    except Exception as e:
+        return f"❌ Error reading CSV: {e}"
 
-    header = next(reader)
+    required_columns = ["Name", "RollNo"]
 
-    required = {"Name", "RollNo"}
-    missing = required - set(header)
+    for col in required_columns:
+        if col not in df.columns:
+            return f"❌ Missing required column: {col}"
+
+    df = df[required_columns]
+    df.to_csv(csv_path)
+    del df
+    # reader = csv.reader(csv_file.stream.read().decode("utf-8").splitlines()) #initialize the csv reader
+
+    # header = next(reader)
+
+    # required = {"Name", "RollNo"}
+    # missing = required - set(header)
     
     
-    
-    if missing:
-        return f"❌ Missing columns: {', '.join(missing)}"  
+    # csv_file.save(csv_path)
+    # if missing:
+    #     return f"❌ Missing columns: {', '.join(missing)}"  
           
-    csv_file.save(csv_path)
+    
     #save the file into the temp folder path
     session["csv_path"] = csv_path
 
@@ -193,18 +207,6 @@ def teams():
         df = pd.read_csv(csv_path)
     except Exception as e:
         return f"❌ Error reading CSV: {e}"
-
-
-    # =========================
-    # Validate Columns
-    # =========================
-    required_columns = ["Name", "RollNo"]
-
-    for col in required_columns:
-        if col not in df.columns:
-            return f"❌ Missing required column: {col}"
-
-    df = df[required_columns]
 
     # =========================
     # Convert to List
