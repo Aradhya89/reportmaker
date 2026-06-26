@@ -80,6 +80,13 @@
     <!-- ===================== -->
 
     <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+        console.log(pdfjsLib);
+    </script>
 
     <script>
 
@@ -162,10 +169,9 @@
             </div>
             <div class="mb-3">
                 <label class="form-label">Submission Image</label>
-
                 <input type="file"
-                    class="form-control team-mvp"   
-                    accept="image/*">
+       class="form-control team-pdf"
+       accept=".pdf,application/pdf">
             </div>
                 <div class="col-md-12 mb-3">
 
@@ -272,7 +278,7 @@
 
         }
 
-        function prepareData() {
+        async function prepareData() {
             const saveBtn = document.getElementById("saveBtn");
             const loadingMessage = document.getElementById("loadingMessage");
 
@@ -289,7 +295,7 @@
 
             const cards = document.querySelectorAll("#teamsContainer .card");
 
-            cards.forEach((card, index) => {
+            for (const [index, card] of cards.entries()) {
 
                 const teamName = card.querySelector(".team-name").value;
                 const psNo = card.querySelector(".ps-no").value;
@@ -322,13 +328,32 @@
                 // =========================
                 // ADD IMAGE FILE
                 // =========================
-                const fileInput = card.querySelector(".team-mvp");
+                const fileInput =
+                    card.querySelector(
+                        ".team-pdf"
+                    );
 
-                if (fileInput && fileInput.files.length > 0) {
-                    formData.append(`mvp_${index}`, fileInput.files[0]);
+                if (
+                    fileInput &&
+                    fileInput.files.length > 0
+                ) {
+
+                    const pdfFile =
+                        fileInput.files[0];
+
+                    const collageBlob =
+                        await pdfToCollage(
+                            pdfFile
+                        );
+
+                    formData.append(
+                        `mvp_${index}`,
+                        collageBlob,
+                        `team_${index}.jpg`
+                    );
                 }
 
-            });
+            };
 
             // attach JSON
             formData.append("teams_data", JSON.stringify(teams));
@@ -359,8 +384,176 @@
 
                 })
         }
+
+        
+        async function pdfToCollage(pdfFile) {
+
+            const buffer = await pdfFile.arrayBuffer();
+
+            const pdf = await pdfjsLib
+                .getDocument({ data: buffer })
+                .promise;
+
+            const pages = [];
+
+            // =====================
+            // Render every PDF page
+            // =====================
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+
+                const page = await pdf.getPage(i);
+
+                const viewport =
+                    page.getViewport({
+                        scale: 1
+                    });
+
+                const canvas =
+                    document.createElement("canvas");
+
+                const ctx =
+                    canvas.getContext("2d");
+
+                canvas.width =
+                    viewport.width;
+
+                canvas.height =
+                    viewport.height;
+
+                await page.render({
+                    canvasContext: ctx,
+                    viewport
+                }).promise;
+
+                pages.push(canvas);
+            }
+
+            const n = pages.length;
+
+            if (n === 0) {
+                throw new Error(
+                    "No pages in PDF."
+                );
+            }
+
+            // =====================
+            // Auto grid
+            // =====================
+
+            const rows =
+                Math.ceil(
+                    Math.sqrt(n)
+                );
+
+            const cols =
+                Math.ceil(
+                    n / rows
+                );
+
+            const MAX_WIDTH =
+                Math.min(
+                    2500,
+                    cols * 700
+                );
+
+            const aspect =
+                pages[0].height /
+                pages[0].width;
+
+            const thumbWidth =
+                Math.floor(
+                    MAX_WIDTH / cols
+                );
+
+            const thumbHeight =
+                Math.floor(
+                    thumbWidth *
+                    aspect
+                );
+
+            // =====================
+            // Create collage canvas
+            // =====================
+
+            const collage =
+                document.createElement(
+                    "canvas"
+                );
+
+            collage.width =
+                cols * thumbWidth;
+
+            collage.height =
+                rows * thumbHeight;
+
+            const ctx =
+                collage.getContext("2d");
+
+            ctx.fillStyle =
+                "white";
+
+            ctx.fillRect(
+                0,
+                0,
+                collage.width,
+                collage.height
+            );
+
+            // =====================
+            // Paste pages
+            // =====================
+
+            pages.forEach(
+                (pageCanvas, index) => {
+
+                    const row =
+                        Math.floor(
+                            index / cols
+                        );
+
+                    const col =
+                        index % cols;
+
+                    const x =
+                        col *
+                        thumbWidth;
+
+                    const y =
+                        row *
+                        thumbHeight;
+
+                    ctx.drawImage(
+                        pageCanvas,
+                        x,
+                        y,
+                        thumbWidth,
+                        thumbHeight
+                    );
+                }
+            );
+
+            // =====================
+            // Return JPEG blob
+            // =====================
+
+            return new Promise(
+                resolve => {
+
+                    collage.toBlob(
+                        blob => {
+                            resolve(blob);
+                        },
+                        "image/jpeg",
+                        0.85
+                    );
+
+                }
+            );
+        }
     </script>
 
+    <!-- script for the pdf to collage maker -->
 </body>
 
 </html>
