@@ -7,6 +7,9 @@ import tempfile
 import pandas as pd
 import os
 import json
+import csv
+
+
 import shutil
 # import dotenv
 
@@ -74,8 +77,24 @@ def upload():
     # Save uploaded file
     filename = secure_filename(csv_file.filename)       #to making sure the file name has safe saving name 
     csv_path = os.path.join(UPLOAD_FOLDER, filename)          # it join the temp folder path with the secured file name
-    csv_file.save(csv_path)     #save the file into the temp folder path
+    
+    
+    reader = csv.reader(csv_file.stream.read().decode("utf-8").splitlines()) #initialize the csv reader
+
+    header = next(reader)
+
+    required = {"Name", "RollNo"}
+    missing = required - set(header)
+    
+    
+    
+    if missing:
+        return f"❌ Missing columns: {', '.join(missing)}"  
+        csv_file.save(csv_path)  
+     
+    #save the file into the temp folder path
     session["csv_path"] = csv_path
+
 
 
     # =========================
@@ -180,11 +199,7 @@ def teams():
     # Validate Columns
     # =========================
     required_columns = ["Name", "RollNo"]
-
-    for col in required_columns:
-        if col not in df.columns:
-            return f"❌ Missing required column: {col}"
-
+    
     df = df[required_columns]
 
     # =========================
