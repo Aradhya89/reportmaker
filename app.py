@@ -90,8 +90,8 @@ def upload():
     
     if missing:
         return f"❌ Missing columns: {', '.join(missing)}"  
-        csv_file.save(csv_path)  
-     
+          
+    csv_file.save(csv_path)
     #save the file into the temp folder path
     session["csv_path"] = csv_path
 
@@ -199,7 +199,11 @@ def teams():
     # Validate Columns
     # =========================
     required_columns = ["Name", "RollNo"]
-    
+
+    for col in required_columns:
+        if col not in df.columns:
+            return f"❌ Missing required column: {col}"
+
     df = df[required_columns]
 
     # =========================
