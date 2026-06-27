@@ -168,10 +168,10 @@
                 </select>
             </div>
             <div class="mb-3">
-                <label class="form-label">Submission Image</label>
+                <label class="form-label">Submission Image (Image/ PDF)</label>
                 <input type="file"
        class="form-control team-file"
-       accept=".pdf,application/pdf">
+       accept=".pdf,application/pdf,image/*">
             </div>
                 <div class="col-md-12 mb-3">
 
@@ -294,8 +294,17 @@
             const teams = [];
 
             const cards = document.querySelectorAll("#teamsContainer .card");
+            const totalTeams = cards.length;
+            let currentTeam = 0;
 
             for (const [index, card] of cards.entries()) {
+                currentTeam++;
+                loadingMessage.innerHTML = `
+    <div class="spinner-border spinner-border-sm"
+         role="status"></div>
+    Processing Team ${currentTeam}
+    of ${totalTeams}...
+`;
 
                 const teamName = card.querySelector(".team-name").value;
                 const psNo = card.querySelector(".ps-no").value;
@@ -398,6 +407,11 @@
                     window.URL.revokeObjectURL(url);
 
                 })
+            loadingMessage.innerHTML = `
+    <div class="spinner-border spinner-border-sm"
+         role="status"></div>
+    Preparing team data...
+`;
         }
 
 
