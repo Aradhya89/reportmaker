@@ -170,7 +170,7 @@
             <div class="mb-3">
                 <label class="form-label">Submission Image</label>
                 <input type="file"
-       class="form-control team-pdf"
+       class="form-control team-file"
        accept=".pdf,application/pdf">
             </div>
                 <div class="col-md-12 mb-3">
@@ -330,27 +330,42 @@
                 // =========================
                 const fileInput =
                     card.querySelector(
-                        ".team-pdf"
+                        ".team-file"
                     );
 
                 if (
                     fileInput &&
                     fileInput.files.length > 0
                 ) {
-
-                    const pdfFile =
+                    const file =
                         fileInput.files[0];
 
-                    const collageBlob =
-                        await pdfToCollage(
-                            pdfFile
-                        );
+                    // PDF uploaded
+                    if (
+                        file.type ===
+                        "application/pdf"
+                    ) {
 
-                    formData.append(
-                        `mvp_${index}`,
-                        collageBlob,
-                        `team_${index}.jpg`
-                    );
+                        const collageBlob =
+                            await pdfToCollage(file);
+
+                        formData.append(
+                            `mvp_${index}`,
+                            collageBlob,
+                            `team_${index}.jpg`
+                        );
+                    }
+
+                    // Image uploaded
+                    else if (
+                        file.type.startsWith("image/")
+                    ) {
+
+                        formData.append(
+                            `mvp_${index}`,
+                            file
+                        );
+                    }
                 }
 
             };
@@ -385,7 +400,7 @@
                 })
         }
 
-        
+
         async function pdfToCollage(pdfFile) {
 
             const buffer = await pdfFile.arrayBuffer();
